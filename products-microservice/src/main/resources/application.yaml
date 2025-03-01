@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: products-microservice
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Student
+    username: postgres
+    password: Daynnite
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  properties:
+    hibernate:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      format_sql: true
