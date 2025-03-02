@@ -1,11 +1,13 @@
 package com.motocart.products_microservice.repository.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Table(name = "products")
 @Data
+@Builder
 public class ProductsEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
