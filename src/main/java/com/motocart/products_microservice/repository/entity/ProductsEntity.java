@@ -17,5 +17,5 @@ public class ProductsEntity {
     private String productCode;
     private String firmName;
     private String description;
-    private double price;
+    private Long price;
 }

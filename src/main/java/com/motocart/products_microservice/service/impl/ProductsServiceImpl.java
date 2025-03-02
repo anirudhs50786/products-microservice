@@ -19,7 +19,7 @@ public class ProductsServiceImpl implements ProductsService {
         this.productsDao = productsDao;
     }
 
-    public ProductsEntity addProduct(ProductsDTO productsDTO) {
+    public void addProduct(ProductsDTO productsDTO) {
         ProductsEntity product = ProductsEntity.builder()
                 .name(productsDTO.getName())
                 .productCode(generateProductCode(productsDTO.getFirmName(), productsDTO.getName()))
@@ -27,10 +27,10 @@ public class ProductsServiceImpl implements ProductsService {
                 .price(productsDTO.getPrice())
                 .build();
         log.debug("saved new product");
-        return productsDao.save(product);
+        productsDao.save(product);
     }
 
-    public ProductsEntity updateProduct(ProductsDTO productsDTO) {
+    public void updateProduct(ProductsDTO productsDTO) {
         Optional<ProductsEntity> optionalProduct = Optional.ofNullable(productsDao.findByProductCode(productsDTO.getProductCode()));
         if (optionalProduct.isPresent()) {
             ProductsEntity product = optionalProduct.get();
@@ -38,7 +38,8 @@ public class ProductsServiceImpl implements ProductsService {
             product.setDescription(productsDTO.getDescription());
             product.setPrice(productsDTO.getPrice());
             log.debug("updated products data");
-            return productsDao.save(product);
+            productsDao.save(product);
+            return;
         }
         throw new IllegalArgumentException("Product does not exist. Create a new Product before updating");
     }
