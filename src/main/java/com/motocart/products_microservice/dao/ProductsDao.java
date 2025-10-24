@@ -1,6 +1,6 @@
-package com.motocart.products_microservice.repository.dao;
+package com.motocart.products_microservice.dao;
 
-import com.motocart.products_microservice.repository.entity.ProductsEntity;
+import com.motocart.products_microservice.entity.ProductsEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductsDao extends JpaRepository<ProductsEntity, Long> {

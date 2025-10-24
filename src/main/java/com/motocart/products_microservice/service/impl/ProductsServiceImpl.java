@@ -1,8 +1,8 @@
 package com.motocart.products_microservice.service.impl;
 
+import com.motocart.products_microservice.dao.ProductsDao;
 import com.motocart.products_microservice.dto.ProductsDTO;
-import com.motocart.products_microservice.repository.dao.ProductsDao;
-import com.motocart.products_microservice.repository.entity.ProductsEntity;
+import com.motocart.products_microservice.entity.ProductsEntity;
 import com.motocart.products_microservice.service.ProductsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.motocart.products_microservice.repository.entity;
+package com.motocart.products_microservice.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;
