@@ -1,7 +1,7 @@
 package com.motocart.products_microservice.service.impl;
 
 import com.motocart.products_microservice.dao.ProductsDao;
-import com.motocart.products_microservice.dto.ProductsDTO;
+import com.motocart.products_microservice.dto.ProductDTO;
 import com.motocart.products_microservice.entity.ProductsEntity;
 import com.motocart.products_microservice.service.ProductsService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,24 +19,24 @@ public class ProductsServiceImpl implements ProductsService {
         this.productsDao = productsDao;
     }
 
-    public void addProduct(ProductsDTO productsDTO) {
+    public void addProduct(ProductDTO productDTO) {
         ProductsEntity product = ProductsEntity.builder()
-                .name(productsDTO.getName())
-                .productCode(generateProductCode(productsDTO.getFirmName(), productsDTO.getName()))
-                .description(productsDTO.getDescription())
-                .price(productsDTO.getPrice())
+                .name(productDTO.getName())
+                .productCode(generateProductCode(productDTO.getFirmName(), productDTO.getName()))
+                .description(productDTO.getDescription())
+                .price(productDTO.getPrice())
                 .build();
         log.debug("saved new product");
         productsDao.save(product);
     }
 
-    public void updateProduct(ProductsDTO productsDTO) {
-        Optional<ProductsEntity> optionalProduct = Optional.ofNullable(productsDao.findByProductCode(productsDTO.getProductCode()));
+    public void updateProduct(ProductDTO productDTO) {
+        Optional<ProductsEntity> optionalProduct = Optional.ofNullable(productsDao.findByProductCode(productDTO.getProductCode()));
         if (optionalProduct.isPresent()) {
             ProductsEntity product = optionalProduct.get();
-            product.setName(productsDTO.getName());
-            product.setDescription(productsDTO.getDescription());
-            product.setPrice(productsDTO.getPrice());
+            product.setName(productDTO.getName());
+            product.setDescription(productDTO.getDescription());
+            product.setPrice(productDTO.getPrice());
             log.debug("updated products data");
             productsDao.save(product);
             return;

@@ -1,10 +1,10 @@
 package com.motocart.products_microservice.service;
 
-import com.motocart.products_microservice.dto.ProductsDTO;
+import com.motocart.products_microservice.dto.ProductDTO;
 
 public interface ProductsService {
 
-    void addProduct(ProductsDTO productsDTO);
+    void addProduct(ProductDTO productDTO);
 
-    void updateProduct(ProductsDTO productsDTO);
+    void updateProduct(ProductDTO productDTO);
 }
