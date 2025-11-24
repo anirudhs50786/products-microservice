@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface CategoriesResource {
 
-    ResponseEntity<String> createCategory(int categoryName);
+    ResponseEntity<String> createCategory(String categoryName);
 
-    ResponseEntity<String> updateCategory(int categoryId);
+    ResponseEntity<String> updateCategory(int categoryId, String categoryName);
 
     ResponseEntity<String> deleteCategory(int categoryId);
 
