@@ -1,4 +1,4 @@
-package com.motocart.products_microservice.api.rest;
+package com.motocart.products_microservice.category.api;
 
 import org.springframework.http.ResponseEntity;
 

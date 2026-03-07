@@ -1,12 +1,14 @@
-package com.motocart.products_microservice.api.rest.impl;
+package com.motocart.products_microservice.product.api.impl;
 
-import com.motocart.products_microservice.api.rest.ProductsResource;
-import com.motocart.products_microservice.dto.ProductDTO;
-import com.motocart.products_microservice.service.ProductsService;
+import com.motocart.products_microservice.product.api.ProductsResource;
+import com.motocart.products_microservice.product.dto.ProductDTO;
+import com.motocart.products_microservice.product.service.ProductsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -45,7 +47,23 @@ public class ProductsResourceImpl implements ProductsResource {
             productsService.updateProduct(product);
             return ResponseEntity.status(HttpStatus.OK).body("Request Success");
         } catch (Exception exception) {
+            log.error("Error while updating the product. {}", exception.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update and save Product");
+        }
+    }
+
+    @GetMapping(produces = "application/json")
+    @Override
+    public ResponseEntity<List<ProductDTO>> getProductByName(@RequestParam String productName) {
+        if (productName == null) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Product Name supplied");
+        }
+        try {
+            List<ProductDTO> productDTOS = productsService.getProductsByName(productName);
+            return ResponseEntity.status(HttpStatus.OK).body(productDTOS);
+        } catch (Exception exception) {
+            log.error("Error while fetching the product by name. {}", exception.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

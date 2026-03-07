@@ -1,12 +1,30 @@
 package com.motocart.products_microservice.util;
 
-import com.motocart.products_microservice.entity.ProductCategoriesEntity;
+import com.motocart.products_microservice.category.entity.CategoriesEntity;
+import com.motocart.products_microservice.product.dto.ProductDTO;
+import com.motocart.products_microservice.product.entity.ProductsEntity;
 
 import java.util.List;
 
-public class MapperUtil {
+public final class MapperUtil {
 
-    public static List<String> mapToStringList(List<ProductCategoriesEntity> productCategoriesEntitiesList) {
-        return productCategoriesEntitiesList.stream().map(ProductCategoriesEntity::getCategoryName).toList();
+    public static List<String> mapToStringList(List<CategoriesEntity> productCategoriesEntitiesList) {
+        return productCategoriesEntitiesList.stream().map(CategoriesEntity::getCategoryName).toList();
     }
+
+    public static List<ProductDTO> toProductDTOList(List<ProductsEntity> productsEntities) {
+        return productsEntities.stream().map(MapperUtil::toProductDTO).toList();
+    }
+
+    private static ProductDTO toProductDTO(ProductsEntity productsEntity) {
+        return ProductDTO.builder()
+                .productId(productsEntity.getProductId())
+                .productName(productsEntity.getProductName())
+                .productDescription(productsEntity.getProductDescription())
+                .productPrice(productsEntity.getProductPrice())
+                .imageUrl(productsEntity.getImageURL())
+                .firmName(productsEntity.getFirmName())
+                .build();
+    }
+
 }

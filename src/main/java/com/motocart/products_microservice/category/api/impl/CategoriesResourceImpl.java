@@ -1,7 +1,7 @@
-package com.motocart.products_microservice.api.rest.impl;
+package com.motocart.products_microservice.category.api.impl;
 
-import com.motocart.products_microservice.api.rest.CategoriesResource;
-import com.motocart.products_microservice.service.CategoriesService;
+import com.motocart.products_microservice.category.api.CategoriesResource;
+import com.motocart.products_microservice.category.service.CategoriesService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

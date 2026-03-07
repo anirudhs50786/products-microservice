@@ -1,4 +1,4 @@
-package com.motocart.products_microservice.service;
+package com.motocart.products_microservice.category.service;
 
 import java.util.List;
 
