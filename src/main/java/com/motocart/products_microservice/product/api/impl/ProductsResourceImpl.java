@@ -1,7 +1,7 @@
 package com.motocart.products_microservice.product.api.impl;
 
+import com.motocart.library.common.dto.ProductDTO;
 import com.motocart.products_microservice.product.api.ProductsResource;
-import com.motocart.products_microservice.product.dto.ProductDTO;
 import com.motocart.products_microservice.product.service.ProductsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -52,9 +52,9 @@ public class ProductsResourceImpl implements ProductsResource {
         }
     }
 
-    @GetMapping(produces = "application/json")
+    @GetMapping(name = "/{productName}", produces = "application/json")
     @Override
-    public ResponseEntity<List<ProductDTO>> getProductByName(@RequestParam String productName) {
+    public ResponseEntity<List<ProductDTO>> getProductByName(@PathVariable String productName) {
         if (productName == null) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Product Name supplied");
         }

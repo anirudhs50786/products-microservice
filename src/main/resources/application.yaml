@@ -21,6 +21,8 @@ spring:
         url: http://localhost:8082
   profiles:
     active: dev
+  main:
+    allow-bean-definition-overriding: true
   datasource:
     url: jdbc:postgresql://localhost:5432/MotoCartEnterprise
     username: ${DB_USERNAME}

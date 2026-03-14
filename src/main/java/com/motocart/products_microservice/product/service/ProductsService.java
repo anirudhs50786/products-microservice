@@ -1,6 +1,6 @@
 package com.motocart.products_microservice.product.service;
 
-import com.motocart.products_microservice.product.dto.ProductDTO;
+import com.motocart.library.common.dto.ProductDTO;
 
 import java.util.List;
 

@@ -57,7 +57,7 @@ public class CategoriesResourceImpl implements CategoriesResource {
         }
     }
 
-    @GetMapping
+    @GetMapping("/_query")
     @Override
     public ResponseEntity<List<String>> getCategories() {
         try {
@@ -71,7 +71,7 @@ public class CategoriesResourceImpl implements CategoriesResource {
 
     @GetMapping
     @Override
-    public ResponseEntity<String> getCategory(@RequestParam int categoryId) {
+    public ResponseEntity<String> getCategory(@PathVariable int categoryId) {
         try {
             String category = categoriesService.getCategory(categoryId);
             return ResponseEntity.status(HttpStatus.OK).body(category);

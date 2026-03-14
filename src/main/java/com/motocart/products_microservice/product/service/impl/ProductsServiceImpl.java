@@ -1,6 +1,6 @@
 package com.motocart.products_microservice.product.service.impl;
 
-import com.motocart.products_microservice.product.dto.ProductDTO;
+import com.motocart.library.common.dto.ProductDTO;
 import com.motocart.products_microservice.product.entity.ProductsEntity;
 import com.motocart.products_microservice.product.repository.ProductsRepository;
 import com.motocart.products_microservice.product.service.ProductsService;

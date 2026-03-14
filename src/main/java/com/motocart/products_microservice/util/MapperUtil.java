@@ -1,7 +1,7 @@
 package com.motocart.products_microservice.util;
 
+import com.motocart.library.common.dto.ProductDTO;
 import com.motocart.products_microservice.category.entity.CategoriesEntity;
-import com.motocart.products_microservice.product.dto.ProductDTO;
 import com.motocart.products_microservice.product.entity.ProductsEntity;
 
 import java.util.List;
