@@ -1,12 +1,15 @@
 package com.motocart.products_microservice.product.api.impl;
 
 import com.motocart.library.common.dto.ProductDTO;
+import com.motocart.library.common.dto.response.APIResponse;
 import com.motocart.products_microservice.product.api.ProductsResource;
 import com.motocart.products_microservice.product.service.ProductsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,18 +25,14 @@ public class ProductsResourceImpl implements ProductsResource {
         this.productsService = productsService;
     }
 
-    @PostMapping(produces = "application/json")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
     @Override
-    public ResponseEntity<String> createProduct(@RequestBody ProductDTO product) {
-        if (product == null) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Product data supplied");
-        }
+    public APIResponse<ProductDTO> createProduct(@RequestPart ProductDTO product, @RequestPart MultipartFile productImage) throws Exception {
         try {
-            productsService.addProduct(product);
-            return ResponseEntity.status(HttpStatus.OK).body("Request Success");
+            return productsService.addProduct(product, productImage);
         } catch (Exception exception) {
             log.error("Error while creating the product. {}", exception.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create and save Product");
+            throw new Exception(exception);
         }
     }
 

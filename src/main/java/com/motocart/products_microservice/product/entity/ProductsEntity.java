@@ -42,6 +42,9 @@ public class ProductsEntity {
     @Column(name = "image_url")
     private String imageURL;
 
+    @Column(name = "image_id")
+    private String imageId;
+
     @Column(name = "is_archived")
     private boolean isArchived;
 
