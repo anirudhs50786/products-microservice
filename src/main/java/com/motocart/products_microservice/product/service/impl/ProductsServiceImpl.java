@@ -4,7 +4,9 @@ import com.motocart.library.common.dto.MessageDTO;
 import com.motocart.library.common.dto.ProductDTO;
 import com.motocart.library.common.dto.response.APIResponse;
 import com.motocart.library.common.types.MessageType;
+import com.motocart.library.common.types.Permission;
 import com.motocart.library.common.types.ResponseStatus;
+import com.motocart.library.security.authentication.EntitlementService;
 import com.motocart.products_microservice.cloudinary.service.CloudinaryService;
 import com.motocart.products_microservice.product.entity.ProductsEntity;
 import com.motocart.products_microservice.product.repository.ProductsRepository;
@@ -28,14 +30,18 @@ public class ProductsServiceImpl implements ProductsService {
 
     private final CloudinaryService CloudinaryService;
 
-    public ProductsServiceImpl(ProductsRepository productsRepository, CloudinaryService cloudinaryService) {
+    private final EntitlementService entitlementService;
+
+    public ProductsServiceImpl(ProductsRepository productsRepository, CloudinaryService cloudinaryService, EntitlementService entitlementService) {
         this.productsRepository = productsRepository;
         CloudinaryService = cloudinaryService;
+        this.entitlementService = entitlementService;
     }
 
     @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public APIResponse<ProductDTO> addProduct(ProductDTO productDTO, MultipartFile productImage) {
+        entitlementService.canAccess(Permission.PRODUCTS_CREATE);
         List<MessageDTO> messageDTOS = new ArrayList<>();
         ResponseStatus status = ResponseStatus.SUCCESS;
         ProductsEntity product = MapperUtil.toProductEntity(productDTO);
@@ -62,6 +68,7 @@ public class ProductsServiceImpl implements ProductsService {
     @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public void updateProduct(ProductDTO productDTO) {
+        entitlementService.canAccess(Permission.PRODUCTS_UPDATE);
         Optional<ProductsEntity> optionalProduct = Optional.ofNullable(productsRepository.findByProductId(productDTO.getProductId()));
         if (optionalProduct.isPresent()) {
             ProductsEntity product = optionalProduct.get();
@@ -79,6 +86,22 @@ public class ProductsServiceImpl implements ProductsService {
     @Override
     public List<ProductDTO> getProductsByName(String product) {
         return MapperUtil.toProductDTOList(productsRepository.findByName(product));
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public void deleteProduct(int productId) {
+        entitlementService.canAccess(Permission.PRODUCTS_DELETE);
+        Optional<ProductsEntity> optionalProduct = Optional.ofNullable(productsRepository.findByProductId(productId));
+        if (optionalProduct.isPresent()) {
+            ProductsEntity product = optionalProduct.get();
+            product.setArchived(true);
+            productsRepository.save(product);
+            log.debug("soft deleted product with id {}", productId);
+            return;
+        }
+        log.error("Product with id {} not found for deletion", productId);
+        throw new IllegalArgumentException("Product not found");
     }
 
 }

@@ -2,6 +2,7 @@ package com.motocart.products_microservice.product.api.impl;
 
 import com.motocart.library.common.dto.ProductDTO;
 import com.motocart.library.common.dto.response.APIResponse;
+import com.motocart.library.common.exception.GlobalException;
 import com.motocart.products_microservice.product.api.ProductsResource;
 import com.motocart.products_microservice.product.service.ProductsService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,12 +28,12 @@ public class ProductsResourceImpl implements ProductsResource {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
     @Override
-    public APIResponse<ProductDTO> createProduct(@RequestPart ProductDTO product, @RequestPart MultipartFile productImage) throws Exception {
+    public APIResponse<ProductDTO> createProduct(@RequestPart ProductDTO product, @RequestPart(required = false) MultipartFile productImage) {
         try {
             return productsService.addProduct(product, productImage);
         } catch (Exception exception) {
             log.error("Error while creating the product. {}", exception.getMessage());
-            throw new Exception(exception);
+            throw new GlobalException("Error while creating the product", exception);
         }
     }
 
@@ -40,7 +41,7 @@ public class ProductsResourceImpl implements ProductsResource {
     @Override
     public ResponseEntity<String> updateProduct(@RequestBody ProductDTO product) {
         if (product == null) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Product data supplied");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Product data supplied");
         }
         try {
             productsService.updateProduct(product);
@@ -51,7 +52,7 @@ public class ProductsResourceImpl implements ProductsResource {
         }
     }
 
-    @GetMapping(name = "/{productName}", produces = "application/json")
+    @GetMapping(path = "/{productName}", produces = "application/json")
     @Override
     public ResponseEntity<List<ProductDTO>> getProductByName(@PathVariable String productName) {
         if (productName == null) {
@@ -63,6 +64,21 @@ public class ProductsResourceImpl implements ProductsResource {
         } catch (Exception exception) {
             log.error("Error while fetching the product by name. {}", exception.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @DeleteMapping(path = "/{productId}", produces = "application/json")
+    @Override
+    public ResponseEntity<String> deleteProduct(@PathVariable int productId) {
+        try {
+            productsService.deleteProduct(productId);
+            return ResponseEntity.status(HttpStatus.OK).body("Product deleted");
+        } catch (IllegalArgumentException exception) {
+            log.warn("Product not found for deletion. {}", exception.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+        } catch (Exception exception) {
+            log.error("Error while deleting the product. {}", exception.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete product");
         }
     }
 }

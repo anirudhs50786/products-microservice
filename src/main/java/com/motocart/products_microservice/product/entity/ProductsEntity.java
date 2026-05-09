@@ -45,6 +45,12 @@ public class ProductsEntity {
     @Column(name = "image_id")
     private String imageId;
 
+    @Column(name = "total_reviews")
+    private int totalReviews;
+
+    @Column(name = "average_review_score")
+    private double averageReviewScore;
+
     @Column(name = "is_archived")
     private boolean isArchived;
 

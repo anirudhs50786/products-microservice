@@ -14,4 +14,6 @@ public interface ProductsResource {
     ResponseEntity<String> updateProduct(ProductDTO product);
 
     ResponseEntity<List<ProductDTO>> getProductByName(String productName);
+
+    ResponseEntity<String> deleteProduct(int productId);
 }

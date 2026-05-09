@@ -47,6 +47,8 @@ public class CategoriesServiceImpl implements CategoriesService {
         if (optionalCategoryEntity.isPresent()) {
             CategoriesEntity categoriesEntity = optionalCategoryEntity.get();
             categoriesEntity.setCategoryName(categoryName);
+            categoriesRepository.save(categoriesEntity);
+            return;
         }
         throw new IllegalArgumentException("Category does not exist. Create a new category before updating");
     }

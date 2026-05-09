@@ -13,4 +13,6 @@ public interface ProductsService {
     void updateProduct(ProductDTO productDTO);
 
     List<ProductDTO> getProductsByName(String product);
+
+    void deleteProduct(int productId);
 }

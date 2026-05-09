@@ -69,7 +69,7 @@ public class CategoriesResourceImpl implements CategoriesResource {
         }
     }
 
-    @GetMapping
+    @GetMapping("/{categoryId}")
     @Override
     public ResponseEntity<String> getCategory(@PathVariable int categoryId) {
         try {
