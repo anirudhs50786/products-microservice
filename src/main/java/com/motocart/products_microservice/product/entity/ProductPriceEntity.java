@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,12 +22,12 @@ public class ProductPriceEntity {
     @Column(name = "id", updatable = false, nullable = false)
     private int id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private ProductsEntity product;
 
     @Column(name = "price", nullable = false)
-    private Long price;
+    private BigDecimal price;
 
     @Column(name = "effective_from", nullable = false)
     private LocalDateTime effectiveFrom;
@@ -36,4 +37,7 @@ public class ProductPriceEntity {
 
     @Column(name = "changed_by")
     private String changedBy;
+
+    @Column(name = "change_reason")
+    private String changeReason;
 }

@@ -64,4 +64,8 @@ public class ProductRatingCalculatorService {
         // Prevent excessive influence
         return Math.min(weight, 1.5);
     }
+
+    public int determineTotalReviews(int productId) {
+        return productReviewRepository.findByProductId(productId).size();
+    }
 }

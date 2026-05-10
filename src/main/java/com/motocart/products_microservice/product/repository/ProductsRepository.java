@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductsRepository extends JpaRepository<ProductsEntity, Integer> {
@@ -14,5 +15,5 @@ public interface ProductsRepository extends JpaRepository<ProductsEntity, Intege
     @Query(value = "SELECT * FROM products WHERE product_name LIKE CONCAT('%', :productName, '%')", nativeQuery = true)
     List<ProductsEntity> findByName(@Param("productName") String productName);
 
-    ProductsEntity findByProductId(int productId);
+    Optional<ProductsEntity> findByProductId(int productId);
 }

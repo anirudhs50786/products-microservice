@@ -16,6 +16,7 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,7 +42,6 @@ class ProductsServiceImplTest {
         productDTO = ProductDTO.builder()
                 .productName("Helmet")
                 .productDescription("Full face helmet")
-                .productPrice(1500L)
                 .firmName("MT")
                 .build();
 
@@ -49,7 +49,6 @@ class ProductsServiceImplTest {
                 .productId(1)
                 .productName("Helmet")
                 .productDescription("Full face helmet")
-                .productPrice(1500L)
                 .firmName("MT")
                 .build();
     }
@@ -93,7 +92,7 @@ class ProductsServiceImplTest {
 
     @Test
     void updateProduct_productExists_success() {
-        when(productsRepository.findByProductId(productDTO.getProductId())).thenReturn(productEntity);
+        when(productsRepository.findByProductId(productDTO.getProductId())).thenReturn(Optional.of(productEntity));
 
         assertDoesNotThrow(() -> productsService.updateProduct(productDTO));
         verify(productsRepository).save(productEntity);
@@ -119,7 +118,7 @@ class ProductsServiceImplTest {
 
     @Test
     void deleteProduct_productExists_softDeletes() {
-        when(productsRepository.findByProductId(1)).thenReturn(productEntity);
+        when(productsRepository.findByProductId(1)).thenReturn(Optional.of(productEntity));
 
         assertDoesNotThrow(() -> productsService.deleteProduct(1));
         assertTrue(productEntity.isArchived());

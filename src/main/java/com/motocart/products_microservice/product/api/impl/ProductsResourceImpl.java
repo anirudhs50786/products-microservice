@@ -1,11 +1,14 @@
 package com.motocart.products_microservice.product.api.impl;
 
 import com.motocart.library.common.dto.ProductDTO;
+import com.motocart.library.common.dto.ProductReviewDTO;
+import com.motocart.library.common.dto.request.ProductReviewRequestDTO;
 import com.motocart.library.common.dto.response.APIResponse;
 import com.motocart.library.common.exception.GlobalException;
 import com.motocart.products_microservice.product.api.ProductsResource;
 import com.motocart.products_microservice.product.service.ProductsService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -79,6 +82,30 @@ public class ProductsResourceImpl implements ProductsResource {
         } catch (Exception exception) {
             log.error("Error while deleting the product. {}", exception.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete product");
+        }
+    }
+
+    @PostMapping(path = "/review", consumes = MediaType.APPLICATION_JSON_VALUE, produces = "application/json")
+    @Override
+    public ResponseEntity<ProductReviewDTO> addProductReview(@RequestBody ProductReviewDTO productReview) {
+        try {
+            ProductReviewDTO productReviewDTO = productsService.addProductReview(productReview);
+            return ResponseEntity.status(HttpStatus.OK).body(productReviewDTO);
+        } catch (Exception exception) {
+            log.error("Error while adding review for the product. {}", exception.getMessage());
+            throw new GlobalException("Error while adding review for the product", exception);
+        }
+    }
+
+    @GetMapping(path = "/review", consumes = MediaType.APPLICATION_JSON_VALUE, produces = "application/json")
+    @Override
+    public ResponseEntity<Page<ProductReviewDTO>> getProductReviews(@RequestBody ProductReviewRequestDTO requestDTO) {
+        try {
+            Page<ProductReviewDTO> productReviewDTO = productsService.getProductReviews(requestDTO);
+            return ResponseEntity.status(HttpStatus.OK).body(productReviewDTO);
+        } catch (Exception exception) {
+            log.error("Error while getting review for the product. {}", exception.getMessage());
+            throw new GlobalException("Error while getting review for the product", exception);
         }
     }
 }

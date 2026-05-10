@@ -32,9 +32,6 @@ public class ProductsEntity {
     @Column(name = "product_description")
     private String productDescription;
 
-    @Column(name = "product_price")
-    private Long productPrice;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private CategoriesEntity category;
