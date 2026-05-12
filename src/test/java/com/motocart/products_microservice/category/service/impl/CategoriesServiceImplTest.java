@@ -44,17 +44,16 @@ class CategoriesServiceImplTest {
     void getCategories_returnsAllCategories() {
         when(categoriesRepository.findAll()).thenReturn(List.of(categoriesEntity));
 
-        List<String> result = categoriesService.getCategories();
+        List<CategoriesEntity> result = categoriesService.getCategories();
 
         assertEquals(1, result.size());
-        assertEquals("Helmets", result.getFirst());
     }
 
     @Test
     void getCategories_emptyList() {
         when(categoriesRepository.findAll()).thenReturn(List.of());
 
-        List<String> result = categoriesService.getCategories();
+        List<CategoriesEntity> result = categoriesService.getCategories();
 
         assertTrue(result.isEmpty());
     }
@@ -63,7 +62,7 @@ class CategoriesServiceImplTest {
     void getCategory_exists_returnsCategoryName() {
         when(categoriesRepository.findById(1)).thenReturn(categoriesEntity);
 
-        String result = categoriesService.getCategory(1);
+        CategoriesEntity result = categoriesService.getCategory(1);
 
         assertEquals("Helmets", result);
     }

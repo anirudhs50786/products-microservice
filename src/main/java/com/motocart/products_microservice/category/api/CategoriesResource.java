@@ -1,18 +1,19 @@
 package com.motocart.products_microservice.category.api;
 
+import com.motocart.library.common.dto.CategoriesDTO;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
 public interface CategoriesResource {
 
-    ResponseEntity<String> createCategory(String categoryName);
+    ResponseEntity<CategoriesDTO> createCategory(String categoryName);
 
-    ResponseEntity<String> updateCategory(int categoryId, String categoryName);
+    ResponseEntity<CategoriesDTO> updateCategory(int categoryId, String categoryName);
 
     ResponseEntity<String> deleteCategory(int categoryId);
 
-    ResponseEntity<List<String>> getCategories();
+    ResponseEntity<List<CategoriesDTO>> getCategories();
 
-    ResponseEntity<String> getCategory(int categoryId);
+    ResponseEntity<CategoriesDTO> getCategory(int categoryId);
 }

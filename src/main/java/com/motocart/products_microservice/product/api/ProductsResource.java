@@ -18,6 +18,8 @@ public interface ProductsResource {
 
     ResponseEntity<List<ProductDTO>> getProductByName(String productName);
 
+    ResponseEntity<ProductDTO> getProductById(int productId);
+
     ResponseEntity<String> deleteProduct(int productId);
 
     ResponseEntity<ProductReviewDTO> addProductReview(ProductReviewDTO productReview);

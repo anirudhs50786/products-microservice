@@ -3,7 +3,6 @@ package com.motocart.products_microservice.category.service.impl;
 import com.motocart.products_microservice.category.entity.CategoriesEntity;
 import com.motocart.products_microservice.category.repository.CategoriesRepository;
 import com.motocart.products_microservice.category.service.CategoriesService;
-import com.motocart.products_microservice.util.MapperUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,21 +18,20 @@ public class CategoriesServiceImpl implements CategoriesService {
     }
 
     @Override
-    public void addCategory(String category) {
+    public CategoriesEntity addCategory(String category) {
         CategoriesEntity categoriesEntity = CategoriesEntity.builder().categoryName(category).build();
-        categoriesRepository.save(categoriesEntity);
+        return categoriesRepository.save(categoriesEntity);
     }
 
     @Override
-    public List<String> getCategories() {
-        List<CategoriesEntity> categoriesEntity = categoriesRepository.findAll();
-        return MapperUtil.mapToStringList(categoriesEntity);
+    public List<CategoriesEntity> getCategories() {
+        return categoriesRepository.findAll();
     }
 
     @Override
-    public String getCategory(int categoryId) {
+    public CategoriesEntity getCategory(int categoryId) {
         Optional<CategoriesEntity> optionalCategoryEntity = Optional.ofNullable(categoriesRepository.findById(categoryId));
-        return optionalCategoryEntity.orElseThrow(() -> new IllegalArgumentException("Category not found.")).getCategoryName();
+        return optionalCategoryEntity.orElseThrow(() -> new IllegalArgumentException("Category not found."));
     }
 
     @Override
@@ -42,13 +40,12 @@ public class CategoriesServiceImpl implements CategoriesService {
     }
 
     @Override
-    public void updateCategory(int categoryId, String categoryName) {
+    public CategoriesEntity updateCategory(int categoryId, String categoryName) {
         Optional<CategoriesEntity> optionalCategoryEntity = Optional.ofNullable(categoriesRepository.findById(categoryId));
         if (optionalCategoryEntity.isPresent()) {
             CategoriesEntity categoriesEntity = optionalCategoryEntity.get();
             categoriesEntity.setCategoryName(categoryName);
-            categoriesRepository.save(categoriesEntity);
-            return;
+            return categoriesRepository.save(categoriesEntity);
         }
         throw new IllegalArgumentException("Category does not exist. Create a new category before updating");
     }

@@ -51,7 +51,7 @@ public class ProductsResourceImpl implements ProductsResource {
             return ResponseEntity.status(HttpStatus.OK).body("Request Success");
         } catch (Exception exception) {
             log.error("Error while updating the product. {}", exception.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update and save Product");
+            throw new GlobalException("Error while updating the product", exception);
         }
     }
 
@@ -65,8 +65,22 @@ public class ProductsResourceImpl implements ProductsResource {
             List<ProductDTO> productDTOS = productsService.getProductsByName(productName);
             return ResponseEntity.status(HttpStatus.OK).body(productDTOS);
         } catch (Exception exception) {
-            log.error("Error while fetching the product by name. {}", exception.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            throw new GlobalException("Error while fetching the product by name: " + productName, exception);
+        }
+    }
+
+    @GetMapping(path = "/{productId}", produces = "application/json")
+    @Override
+    public ResponseEntity<ProductDTO> getProductById(@PathVariable int productId) {
+        if (productId == 0) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No Product Name supplied");
+        }
+        try {
+            ProductDTO productDTO = productsService.getProductsById(productId);
+            return ResponseEntity.status(HttpStatus.OK).body(productDTO);
+        } catch (Exception exception) {
+            log.error("Error while fetching the product by product Id. {}", exception.getMessage());
+            throw new GlobalException("Error while fetching the product by product Id", exception);
         }
     }
 
@@ -78,10 +92,10 @@ public class ProductsResourceImpl implements ProductsResource {
             return ResponseEntity.status(HttpStatus.OK).body("Product deleted");
         } catch (IllegalArgumentException exception) {
             log.warn("Product not found for deletion. {}", exception.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+            throw new GlobalException("Product not found for deletion", exception);
         } catch (Exception exception) {
             log.error("Error while deleting the product. {}", exception.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete product");
+            throw new GlobalException("Error while deleting the product", exception);
         }
     }
 

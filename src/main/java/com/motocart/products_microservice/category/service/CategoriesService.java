@@ -1,16 +1,18 @@
 package com.motocart.products_microservice.category.service;
 
+import com.motocart.products_microservice.category.entity.CategoriesEntity;
+
 import java.util.List;
 
 public interface CategoriesService {
 
-    void addCategory(String category);
+    CategoriesEntity addCategory(String category);
 
-    List<String> getCategories();
+    List<CategoriesEntity> getCategories();
 
-    String getCategory(int categoryId);
+    CategoriesEntity getCategory(int categoryId);
 
     void deleteCategory(int categoryId);
 
-    void updateCategory(int categoryId, String categoryName);
+    CategoriesEntity updateCategory(int categoryId, String categoryName);
 }

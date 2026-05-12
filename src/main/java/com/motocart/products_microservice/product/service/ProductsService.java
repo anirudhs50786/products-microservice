@@ -19,6 +19,8 @@ public interface ProductsService {
 
     List<ProductDTO> getProductsByName(String product);
 
+    ProductDTO getProductsById(int productId);
+
     void deleteProduct(int productId);
 
     ProductReviewDTO addProductReview(ProductReviewDTO productReview);
