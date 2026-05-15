@@ -1,5 +1,6 @@
 package com.motocart.products_microservice.category.service.impl;
 
+import com.motocart.library.common.dto.CategoriesDTO;
 import com.motocart.products_microservice.category.entity.CategoriesEntity;
 import com.motocart.products_microservice.category.repository.CategoriesRepository;
 import com.motocart.products_microservice.category.service.CategoriesService;
@@ -18,8 +19,11 @@ public class CategoriesServiceImpl implements CategoriesService {
     }
 
     @Override
-    public CategoriesEntity addCategory(String category) {
-        CategoriesEntity categoriesEntity = CategoriesEntity.builder().categoryName(category).build();
+    public CategoriesEntity addCategory(CategoriesDTO category) {
+        CategoriesEntity categoriesEntity = CategoriesEntity.builder()
+                .categoryDesc(category.getCategoryDesc())
+                .categoryName(category.getCategoryName())
+                .build();
         return categoriesRepository.save(categoriesEntity);
     }
 
@@ -40,11 +44,12 @@ public class CategoriesServiceImpl implements CategoriesService {
     }
 
     @Override
-    public CategoriesEntity updateCategory(int categoryId, String categoryName) {
-        Optional<CategoriesEntity> optionalCategoryEntity = Optional.ofNullable(categoriesRepository.findById(categoryId));
+    public CategoriesEntity updateCategory(CategoriesDTO requestCategoriesDTO) {
+        Optional<CategoriesEntity> optionalCategoryEntity = Optional.ofNullable(categoriesRepository.findById(requestCategoriesDTO.getCategoryId()));
         if (optionalCategoryEntity.isPresent()) {
             CategoriesEntity categoriesEntity = optionalCategoryEntity.get();
-            categoriesEntity.setCategoryName(categoryName);
+            categoriesEntity.setCategoryName(requestCategoriesDTO.getCategoryName());
+            categoriesEntity.setCategoryDesc(requestCategoriesDTO.getCategoryDesc());
             return categoriesRepository.save(categoriesEntity);
         }
         throw new IllegalArgumentException("Category does not exist. Create a new category before updating");

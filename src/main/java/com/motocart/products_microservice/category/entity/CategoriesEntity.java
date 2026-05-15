@@ -1,6 +1,6 @@
 package com.motocart.products_microservice.category.entity;
 
-import com.motocart.products_microservice.product.entity.ProductsEntity;
+import com.motocart.products_microservice.product.entity.ProductEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,5 +29,5 @@ public class CategoriesEntity {
     private String categoryDesc;
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
-    List<ProductsEntity> productsEntity;
+    List<ProductEntity> productEntity;
 }

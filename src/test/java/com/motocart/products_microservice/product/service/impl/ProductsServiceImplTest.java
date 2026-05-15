@@ -4,7 +4,7 @@ import com.motocart.library.common.dto.ProductDTO;
 import com.motocart.library.common.dto.response.APIResponse;
 import com.motocart.library.common.types.ResponseStatus;
 import com.motocart.products_microservice.cloudinary.service.CloudinaryService;
-import com.motocart.products_microservice.product.entity.ProductsEntity;
+import com.motocart.products_microservice.product.entity.ProductEntity;
 import com.motocart.products_microservice.product.repository.ProductsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ class ProductsServiceImplTest {
     private ProductsServiceImpl productsService;
 
     private ProductDTO productDTO;
-    private ProductsEntity productEntity;
+    private ProductEntity productEntity;
 
     @BeforeEach
     void setUp() {
@@ -45,7 +45,7 @@ class ProductsServiceImplTest {
                 .firmName("MT")
                 .build();
 
-        productEntity = ProductsEntity.builder()
+        productEntity = ProductEntity.builder()
                 .productId(1)
                 .productName("Helmet")
                 .productDescription("Full face helmet")

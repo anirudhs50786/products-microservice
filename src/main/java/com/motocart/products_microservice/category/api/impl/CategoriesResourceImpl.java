@@ -25,9 +25,9 @@ public class CategoriesResourceImpl implements CategoriesResource {
 
     @PostMapping
     @Override
-    public ResponseEntity<CategoriesDTO> createCategory(@RequestParam String categoryName) {
+    public ResponseEntity<CategoriesDTO> createCategory(@RequestBody CategoriesDTO requestCategoriesDTO) {
         try {
-            CategoriesDTO categoriesDTO = MapperUtil.toCategoriesDTO(categoriesService.addCategory(categoryName));
+            CategoriesDTO categoriesDTO = MapperUtil.toCategoriesDTO(categoriesService.addCategory(requestCategoriesDTO));
             return ResponseEntity.status(HttpStatus.OK).body(categoriesDTO);
         } catch (Exception exception) {
             log.error("Error while creating the category. {}", exception.getMessage());
@@ -35,11 +35,11 @@ public class CategoriesResourceImpl implements CategoriesResource {
         }
     }
 
-    @PutMapping("/{categoryId}/{categoryName}")
+    @PutMapping
     @Override
-    public ResponseEntity<CategoriesDTO> updateCategory(@RequestParam int categoryId, @RequestParam String categoryName) {
+    public ResponseEntity<CategoriesDTO> updateCategory(@RequestParam CategoriesDTO requestCategoriesDTO) {
         try {
-            CategoriesDTO categoriesDTO = MapperUtil.toCategoriesDTO(categoriesService.updateCategory(categoryId, categoryName));
+            CategoriesDTO categoriesDTO = MapperUtil.toCategoriesDTO(categoriesService.updateCategory(requestCategoriesDTO));
             return ResponseEntity.status(HttpStatus.OK).body(categoriesDTO);
         } catch (Exception exception) {
             log.error("Error while updating the category. {}", exception.getMessage());

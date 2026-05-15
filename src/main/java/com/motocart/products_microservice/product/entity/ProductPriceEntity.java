@@ -24,7 +24,7 @@ public class ProductPriceEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private ProductsEntity product;
+    private ProductEntity product;
 
     @Column(name = "price", nullable = false)
     private BigDecimal price;

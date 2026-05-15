@@ -7,9 +7,9 @@ import com.motocart.library.common.dto.ProductReviewDTO;
 import com.motocart.library.common.dto.response.APIResponse;
 import com.motocart.library.common.types.ResponseStatus;
 import com.motocart.products_microservice.category.entity.CategoriesEntity;
+import com.motocart.products_microservice.product.entity.ProductEntity;
 import com.motocart.products_microservice.product.entity.ProductPriceEntity;
 import com.motocart.products_microservice.product.entity.ProductReviewEntity;
-import com.motocart.products_microservice.product.entity.ProductsEntity;
 import com.motocart.products_microservice.product.service.ProductsService;
 
 import java.math.BigDecimal;
@@ -22,25 +22,25 @@ public final class MapperUtil {
         return productCategoriesEntitiesList.stream().map(CategoriesEntity::getCategoryName).toList();
     }
 
-    public static List<ProductDTO> toProductDTOList(List<ProductsEntity> productsEntities, Map<Integer, BigDecimal> productPriceMap) {
+    public static List<ProductDTO> toProductDTOList(List<ProductEntity> productsEntities, Map<Integer, BigDecimal> productPriceMap) {
         return productsEntities.stream().map(productsEntity -> toProductDTO(productsEntity, productPriceMap)).toList();
     }
 
-    public static ProductDTO toProductDTO(ProductsEntity productsEntity, Map<Integer, BigDecimal> productPriceMap) {
-        BigDecimal productPrice = productPriceMap.get(productsEntity.getProductId());
+    public static ProductDTO toProductDTO(ProductEntity productEntity, Map<Integer, BigDecimal> productPriceMap) {
+        BigDecimal productPrice = productPriceMap.get(productEntity.getProductId());
         return ProductDTO.builder()
-                .productId(productsEntity.getProductId())
-                .productName(productsEntity.getProductName())
-                .productDescription(productsEntity.getProductDescription())
-                .imageUrl(productsEntity.getImageURL())
+                .productId(productEntity.getProductId())
+                .productName(productEntity.getProductName())
+                .productDescription(productEntity.getProductDescription())
+                .imageUrl(productEntity.getImageURL())
                 .productPrice(productPrice)
-                .imageId(productsEntity.getImageId())
-                .firmName(productsEntity.getFirmName())
+                .imageId(productEntity.getImageId())
+                .firmName(productEntity.getFirmName())
                 .build();
     }
 
-    public static ProductsEntity toProductEntity(ProductDTO productDTO) {
-        return ProductsEntity.builder()
+    public static ProductEntity toProductEntity(ProductDTO productDTO) {
+        return ProductEntity.builder()
                 .productId(productDTO.getProductId())
                 .productName(productDTO.getProductName())
                 .productDescription(productDTO.getProductDescription())
@@ -49,13 +49,13 @@ public final class MapperUtil {
                 .build();
     }
 
-    public static APIResponse<ProductDTO> toProductApiResponse(ProductsEntity productsEntity,
+    public static APIResponse<ProductDTO> toProductApiResponse(ProductEntity productEntity,
                                                                List<MessageDTO> messageDTOS,
                                                                ResponseStatus responseStatus,
                                                                ProductPriceEntity productPrice) {
-        Map<Integer, BigDecimal> productPriceMap = Map.of(productsEntity.getProductId(), productPrice.getPrice());
+        Map<Integer, BigDecimal> productPriceMap = Map.of(productEntity.getProductId(), productPrice.getPrice());
         return APIResponse.<ProductDTO>builder()
-                .data(toProductDTO(productsEntity, productPriceMap))
+                .data(toProductDTO(productEntity, productPriceMap))
                 .messages(messageDTOS)
                 .status((responseStatus))
                 .build();
@@ -74,7 +74,7 @@ public final class MapperUtil {
                 .build();
     }
 
-    public static ProductReviewEntity toProductReviewEntity(ProductReviewDTO productReview, ProductsEntity product) {
+    public static ProductReviewEntity toProductReviewEntity(ProductReviewDTO productReview, ProductEntity product) {
         String mediaLinks = String.join(ProductsService.MEDIA_LINK_SEPARATOR, productReview.getMediaLinks());
         return ProductReviewEntity.builder()
                 .reviewId(productReview.getReviewId())

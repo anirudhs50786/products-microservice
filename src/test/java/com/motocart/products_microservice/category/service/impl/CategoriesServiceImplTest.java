@@ -1,5 +1,6 @@
 package com.motocart.products_microservice.category.service.impl;
 
+import com.motocart.library.common.dto.CategoriesDTO;
 import com.motocart.products_microservice.category.entity.CategoriesEntity;
 import com.motocart.products_microservice.category.repository.CategoriesRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,10 @@ class CategoriesServiceImplTest {
 
     @Test
     void addCategory_success() {
-        categoriesService.addCategory("Helmets");
+        CategoriesDTO categoriesDTO = new CategoriesDTO();
+        categoriesDTO.setCategoryName("Helmets");
+        categoriesDTO.setCategoryDesc("Buy helmets");
+        categoriesService.addCategory(categoriesDTO);
         verify(categoriesRepository).save(any(CategoriesEntity.class));
     }
 
@@ -82,9 +86,13 @@ class CategoriesServiceImplTest {
 
     @Test
     void updateCategory_notFound_throwsException() {
+        CategoriesDTO categoriesDTO = new CategoriesDTO();
+        categoriesDTO.setCategoryName("Gloves");
+        categoriesDTO.setCategoryId(99);
+
         when(categoriesRepository.findById(99)).thenReturn(null);
 
-        assertThrows(IllegalArgumentException.class, () -> categoriesService.updateCategory(99, "Gloves"));
+        assertThrows(IllegalArgumentException.class, () -> categoriesService.updateCategory(categoriesDTO));
         verify(categoriesRepository, never()).save(any());
     }
 }

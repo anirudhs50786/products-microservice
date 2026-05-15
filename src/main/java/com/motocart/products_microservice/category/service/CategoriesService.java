@@ -1,12 +1,13 @@
 package com.motocart.products_microservice.category.service;
 
+import com.motocart.library.common.dto.CategoriesDTO;
 import com.motocart.products_microservice.category.entity.CategoriesEntity;
 
 import java.util.List;
 
 public interface CategoriesService {
 
-    CategoriesEntity addCategory(String category);
+    CategoriesEntity addCategory(CategoriesDTO category);
 
     List<CategoriesEntity> getCategories();
 
@@ -14,5 +15,5 @@ public interface CategoriesService {
 
     void deleteCategory(int categoryId);
 
-    CategoriesEntity updateCategory(int categoryId, String categoryName);
+    CategoriesEntity updateCategory(CategoriesDTO requestCategoriesDTO);
 }

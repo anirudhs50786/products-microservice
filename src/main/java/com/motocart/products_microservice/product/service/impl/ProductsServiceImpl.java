@@ -9,11 +9,12 @@ import com.motocart.library.common.types.MessageType;
 import com.motocart.library.common.types.Permission;
 import com.motocart.library.common.types.ResponseStatus;
 import com.motocart.library.security.authentication.EntitlementService;
+import com.motocart.products_microservice.audit.AuditEventBuilder;
 import com.motocart.products_microservice.category.entity.CategoriesEntity;
 import com.motocart.products_microservice.cloudinary.service.CloudinaryService;
+import com.motocart.products_microservice.product.entity.ProductEntity;
 import com.motocart.products_microservice.product.entity.ProductPriceEntity;
 import com.motocart.products_microservice.product.entity.ProductReviewEntity;
-import com.motocart.products_microservice.product.entity.ProductsEntity;
 import com.motocart.products_microservice.product.repository.ProductPriceRepository;
 import com.motocart.products_microservice.product.repository.ProductReviewRepository;
 import com.motocart.products_microservice.product.repository.ProductsRepository;
@@ -52,16 +53,19 @@ public class ProductsServiceImpl implements ProductsService {
 
     private final ProductReviewRepository reviewRepository;
 
+    private final AuditEventBuilder auditEventBuilder;
+
     public ProductsServiceImpl(ProductsRepository productsRepository,
                                CloudinaryService cloudinaryService,
                                EntitlementService entitlementService,
-                               ProductPriceRepository priceRepository, ProductRatingCalculatorService ratingCalculatorService, ProductReviewRepository reviewRepository) {
+                               ProductPriceRepository priceRepository, ProductRatingCalculatorService ratingCalculatorService, ProductReviewRepository reviewRepository, AuditEventBuilder auditEventBuilder) {
         this.productsRepository = productsRepository;
         this.CloudinaryService = cloudinaryService;
         this.entitlementService = entitlementService;
         this.priceRepository = priceRepository;
         this.ratingCalculatorService = ratingCalculatorService;
         this.reviewRepository = reviewRepository;
+        this.auditEventBuilder = auditEventBuilder;
     }
 
     @Override
@@ -70,7 +74,7 @@ public class ProductsServiceImpl implements ProductsService {
         entitlementService.canAccess(Permission.PRODUCTS_CREATE);
         List<MessageDTO> messageDTOS = new ArrayList<>();
         ResponseStatus status = ResponseStatus.SUCCESS;
-        ProductsEntity product = MapperUtil.toProductEntity(productDTO);
+        ProductEntity product = MapperUtil.toProductEntity(productDTO);
         if (productImage != null && !productImage.isEmpty()) {
             try {
                 Map response = CloudinaryService.uploadFile(productImage);
@@ -94,6 +98,7 @@ public class ProductsServiceImpl implements ProductsService {
         priceRepository.save(productPrice);
         productsRepository.save(product);
         log.debug("saved new product");
+        auditEventBuilder.publishAddProductAuditEvent(product);
         return MapperUtil.toProductApiResponse(product, messageDTOS, status, productPrice);
     }
 
@@ -102,9 +107,10 @@ public class ProductsServiceImpl implements ProductsService {
     public void updateProduct(ProductDTO productDTO) {
         entitlementService.canAccess(Permission.PRODUCTS_UPDATE);
         CategoriesEntity category = CategoriesEntity.builder().categoryId(productDTO.getCategoryId()).build();
-        Optional<ProductsEntity> optionalProduct = productsRepository.findByProductId(productDTO.getProductId());
+        Optional<ProductEntity> optionalProduct = productsRepository.findByProductId(productDTO.getProductId());
         if (optionalProduct.isPresent()) {
-            ProductsEntity product = optionalProduct.get();
+            ProductEntity product = optionalProduct.get();
+            ProductEntity productOriginal = new ProductEntity(product);
             product.setProductName(productDTO.getProductName());
             product.setProductDescription(productDTO.getProductDescription());
             product.setCategory(category);
@@ -112,6 +118,7 @@ public class ProductsServiceImpl implements ProductsService {
                 updateLatestProductPrice(product, productDTO);
             }
             log.debug("updated products data");
+            auditEventBuilder.publishUpdateProductAuditEvent(productOriginal, product);
             productsRepository.save(product);
             return;
         }
@@ -121,8 +128,8 @@ public class ProductsServiceImpl implements ProductsService {
 
     @Override
     public List<ProductDTO> getProductsByName(String product) {
-        List<ProductsEntity> productsEntities = productsRepository.findByName(product);
-        List<Integer> productIds = productsEntities.stream().map(ProductsEntity::getProductId).toList();
+        List<ProductEntity> productsEntities = productsRepository.findByName(product);
+        List<Integer> productIds = productsEntities.stream().map(ProductEntity::getProductId).toList();
         Map<Integer, BigDecimal> productPriceMap = priceRepository.getLatestPriceForProductList(productIds).stream().collect(Collectors.toMap(price -> price.getProduct().getProductId(), ProductPriceEntity::getPrice));
 
         return MapperUtil.toProductDTOList(productsEntities, productPriceMap);
@@ -130,7 +137,7 @@ public class ProductsServiceImpl implements ProductsService {
 
     @Override
     public ProductDTO getProductsById(int productId) {
-        ProductsEntity product = productsRepository.findByProductId(productId).orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        ProductEntity product = productsRepository.findByProductId(productId).orElseThrow(() -> new IllegalArgumentException("Product not found"));
         BigDecimal price = priceRepository.getLatestPriceForProduct(productId).map(ProductPriceEntity::getPrice).orElse(BigDecimal.ZERO);
         return MapperUtil.toProductDTO(product, Map.of(productId, price));
     }
@@ -144,7 +151,7 @@ public class ProductsServiceImpl implements ProductsService {
         return latestProductPrice.getPrice().compareTo(newPrice) != 0;
     }
 
-    private void updateLatestProductPrice(ProductsEntity product, ProductDTO productDTO) {
+    private void updateLatestProductPrice(ProductEntity product, ProductDTO productDTO) {
         // update previous latest price date
         priceRepository.getLatestPriceForProduct(product.getProductId()).ifPresent(latestProductPrice -> {
             latestProductPrice.setEffectiveTo(LocalDateTime.now());
@@ -167,9 +174,9 @@ public class ProductsServiceImpl implements ProductsService {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public void deleteProduct(int productId) {
         entitlementService.canAccess(Permission.PRODUCTS_DELETE);
-        Optional<ProductsEntity> optionalProduct = productsRepository.findByProductId(productId);
+        Optional<ProductEntity> optionalProduct = productsRepository.findByProductId(productId);
         if (optionalProduct.isPresent()) {
-            ProductsEntity product = optionalProduct.get();
+            ProductEntity product = optionalProduct.get();
             product.setArchived(true);
             productsRepository.save(product);
             log.debug("soft deleted product with id {}", productId);
@@ -181,7 +188,7 @@ public class ProductsServiceImpl implements ProductsService {
 
     @Override
     public ProductReviewDTO addProductReview(ProductReviewDTO productReview) {
-        ProductsEntity product = productsRepository.findByProductId(productReview.getProductId()).orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        ProductEntity product = productsRepository.findByProductId(productReview.getProductId()).orElseThrow(() -> new IllegalArgumentException("Product not found"));
         ProductReviewEntity productReviewEntity = MapperUtil.toProductReviewEntity(productReview, product);
         reviewRepository.save(productReviewEntity);
         product.setAverageReviewScore(ratingCalculatorService.determineReviewRating(productReview.getProductId()));

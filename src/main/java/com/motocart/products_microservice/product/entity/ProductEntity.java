@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductsEntity {
+public class ProductEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,5 +51,16 @@ public class ProductsEntity {
     @Column(name = "is_archived")
     private boolean isArchived;
 
+    public ProductEntity(ProductEntity otherProductEntity) {
+        this.productId = otherProductEntity.getProductId();
+        this.productName = otherProductEntity.getProductName();
+        this.productCode = otherProductEntity.getProductCode();
+        this.firmName = otherProductEntity.getFirmName();
+        this.productDescription = otherProductEntity.getProductDescription();
+        this.category = otherProductEntity.getCategory();
+        this.imageURL = otherProductEntity.getImageURL();
+        this.imageId = otherProductEntity.getImageId();
+        this.isArchived = otherProductEntity.isArchived();
+    }
 
 }
