@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,6 +56,12 @@ public class ProductsServiceImpl implements ProductsService {
 
     private final AuditEventBuilder auditEventBuilder;
 
+    List<String> allowedTypes = List.of(
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+    );
+
     public ProductsServiceImpl(ProductsRepository productsRepository,
                                CloudinaryService cloudinaryService,
                                EntitlementService entitlementService,
@@ -72,6 +79,7 @@ public class ProductsServiceImpl implements ProductsService {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public APIResponse<ProductDTO> addProduct(ProductDTO productDTO, MultipartFile productImage) {
         entitlementService.canAccess(Permission.PRODUCTS_CREATE);
+        validateAddProductRequestDTO(productDTO, productImage);
         List<MessageDTO> messageDTOS = new ArrayList<>();
         ResponseStatus status = ResponseStatus.SUCCESS;
         ProductEntity product = MapperUtil.toProductEntity(productDTO);
@@ -89,7 +97,8 @@ public class ProductsServiceImpl implements ProductsService {
                 status = ResponseStatus.PARTIAL;
             }
         }
-        ProductPriceEntity productPrice = ProductPriceEntity.builder().price(productDTO.getProductPrice())
+        ProductPriceEntity productPrice = ProductPriceEntity.builder()
+                .price(productDTO.getProductPrice())
                 .effectiveFrom(LocalDateTime.now())
                 .changedBy("ADMIN")
                 .changeReason("Product Created")
@@ -100,6 +109,33 @@ public class ProductsServiceImpl implements ProductsService {
         log.debug("saved new product");
         auditEventBuilder.publishAddProductAuditEvent(product);
         return MapperUtil.toProductApiResponse(product, messageDTOS, status, productPrice);
+    }
+
+    private void validateAddProductRequestDTO(ProductDTO productDTO, @Nullable MultipartFile productImage) {
+        if (productDTO == null) {
+            throw new IllegalArgumentException("Product data cannot be null");
+        }
+        if (productDTO.getProductPrice() == null || BigDecimal.ZERO.equals(productDTO.getProductPrice())) {
+            throw new IllegalArgumentException("Product price cannot be null or zero");
+        }
+        if (productDTO.getCategoryId() <= 0) {
+            throw new IllegalArgumentException("Product category Id cannot be null or zero");
+        }
+        if (productDTO.getProductName() == null || productDTO.getProductName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Product name cannot be null or empty");
+        }
+        if (productDTO.getFirmName() == null || productDTO.getFirmName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Firm name cannot be null or empty");
+        }
+        if (productDTO.getProductDescription() == null || productDTO.getProductDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Product description cannot be null or empty");
+        }
+        if (productImage != null && productImage.isEmpty()) {
+            throw new IllegalArgumentException("Uploaded file is empty");
+        }
+        if (productImage != null && !allowedTypes.contains(productImage.getContentType())) {
+            throw new IllegalArgumentException("Invalid file type uploaded");
+        }
     }
 
     @Override

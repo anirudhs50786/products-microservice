@@ -2,10 +2,9 @@ package com.motocart.products_microservice.audit;
 
 import com.motocart.library.common.event.AuditEvent;
 import com.motocart.library.common.types.AuditEntityType;
-import com.motocart.library.security.Principal;
+import com.motocart.library.security.AuthHelper;
 import com.motocart.products_microservice.product.entity.ProductEntity;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -40,18 +39,10 @@ public class AuditEventBuilder {
                 .entityType(AuditEntityType.PRODUCT)
                 .action("PRODUCT_CREATED")
                 .changedFieldsPairMap(changedFields)
-                .userId(getAuthUserId())
+                .userId(AuthHelper.getAuthUserId())
                 .sourceService(SERVICE_NAME)
                 .timeStamp(Instant.now())
                 .build());
-    }
-
-    private int getAuthUserId() {
-        try {
-            return ((Principal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).userId();
-        } catch (Exception e) {
-            return 0;
-        }
     }
 
     @Async("productExecutor")
@@ -70,7 +61,7 @@ public class AuditEventBuilder {
                 .entityType(AuditEntityType.PRODUCT)
                 .action("PRODUCT_CREATED")
                 .changedFieldsPairMap(changedFields)
-                .userId(getAuthUserId())
+                .userId(AuthHelper.getAuthUserId())
                 .sourceService(SERVICE_NAME)
                 .timeStamp(Instant.now())
                 .build());

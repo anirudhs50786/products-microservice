@@ -27,6 +27,9 @@ public final class MapperUtil {
     }
 
     public static ProductDTO toProductDTO(ProductEntity productEntity, Map<Integer, BigDecimal> productPriceMap) {
+        if (productEntity == null || productPriceMap == null) {
+            return null;
+        }
         BigDecimal productPrice = productPriceMap.get(productEntity.getProductId());
         return ProductDTO.builder()
                 .productId(productEntity.getProductId())
@@ -75,7 +78,7 @@ public final class MapperUtil {
     }
 
     public static ProductReviewEntity toProductReviewEntity(ProductReviewDTO productReview, ProductEntity product) {
-        String mediaLinks = String.join(ProductsService.MEDIA_LINK_SEPARATOR, productReview.getMediaLinks());
+        String mediaLinks = productReview.getMediaLinks() == null ? null : String.join(ProductsService.MEDIA_LINK_SEPARATOR, productReview.getMediaLinks());
         return ProductReviewEntity.builder()
                 .reviewId(productReview.getReviewId())
                 .product(product)

@@ -34,6 +34,9 @@ public class ProductsResourceImpl implements ProductsResource {
     public APIResponse<ProductDTO> createProduct(@RequestPart ProductDTO product, @RequestPart(required = false) MultipartFile productImage) {
         try {
             return productsService.addProduct(product, productImage);
+        } catch (IllegalArgumentException ilx) {
+            log.warn("Request error:", ilx);
+            throw new GlobalException("Required fields are missing.", ilx);
         } catch (Exception exception) {
             log.error("Error while creating the product. {}", exception.getMessage());
             throw new GlobalException("Error while creating the product", exception);
