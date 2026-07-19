@@ -5,21 +5,26 @@ import com.motocart.library.common.dto.ProductDTO;
 import com.motocart.library.common.dto.ProductReviewDTO;
 import com.motocart.library.common.dto.request.ProductReviewRequestDTO;
 import com.motocart.library.common.dto.response.APIResponse;
+import com.motocart.library.common.types.ImageType;
 import com.motocart.library.common.types.MessageType;
 import com.motocart.library.common.types.Permission;
 import com.motocart.library.common.types.ResponseStatus;
-import com.motocart.library.security.authentication.EntitlementService;
+import com.motocart.library.security.authorization.EntitlementService;
 import com.motocart.products_microservice.audit.AuditEventBuilder;
 import com.motocart.products_microservice.category.entity.CategoriesEntity;
+import com.motocart.products_microservice.cloudinary.dto.CloudinaryUploadResponseDTO;
 import com.motocart.products_microservice.cloudinary.service.CloudinaryService;
 import com.motocart.products_microservice.product.entity.ProductEntity;
+import com.motocart.products_microservice.product.entity.ProductImageEntity;
 import com.motocart.products_microservice.product.entity.ProductPriceEntity;
 import com.motocart.products_microservice.product.entity.ProductReviewEntity;
+import com.motocart.products_microservice.product.repository.ProductImageRepository;
 import com.motocart.products_microservice.product.repository.ProductPriceRepository;
 import com.motocart.products_microservice.product.repository.ProductReviewRepository;
 import com.motocart.products_microservice.product.repository.ProductsRepository;
 import com.motocart.products_microservice.product.service.ProductsService;
 import com.motocart.products_microservice.util.MapperUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,14 +37,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ProductsServiceImpl implements ProductsService {
 
     private final ProductsRepository productsRepository;
@@ -56,62 +59,46 @@ public class ProductsServiceImpl implements ProductsService {
 
     private final AuditEventBuilder auditEventBuilder;
 
+    private final ProductImageRepository productImageRepository;
+
     List<String> allowedTypes = List.of(
             "image/jpeg",
             "image/png",
             "image/webp"
     );
 
-    public ProductsServiceImpl(ProductsRepository productsRepository,
-                               CloudinaryService cloudinaryService,
-                               EntitlementService entitlementService,
-                               ProductPriceRepository priceRepository, ProductRatingCalculatorService ratingCalculatorService, ProductReviewRepository reviewRepository, AuditEventBuilder auditEventBuilder) {
-        this.productsRepository = productsRepository;
-        this.CloudinaryService = cloudinaryService;
-        this.entitlementService = entitlementService;
-        this.priceRepository = priceRepository;
-        this.ratingCalculatorService = ratingCalculatorService;
-        this.reviewRepository = reviewRepository;
-        this.auditEventBuilder = auditEventBuilder;
-    }
-
     @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public APIResponse<ProductDTO> addProduct(ProductDTO productDTO, MultipartFile productImage) {
+    public APIResponse<ProductDTO> addProduct(ProductDTO productDTO, MultipartFile[] productImages) {
         entitlementService.canAccess(Permission.PRODUCTS_CREATE);
-        validateAddProductRequestDTO(productDTO, productImage);
+        validateAddProductRequestDTO(productDTO, productImages);
+
+        // Upload images in parallel via CloudinaryService
+        List<CloudinaryUploadResponseDTO> uploadResponses = new ArrayList<>();
         List<MessageDTO> messageDTOS = new ArrayList<>();
-        ResponseStatus status = ResponseStatus.SUCCESS;
+        ResponseStatus status = processImageUpload(uploadResponses, productImages, messageDTOS);
+
+        // Save product first
         ProductEntity product = MapperUtil.toProductEntity(productDTO);
-        if (productImage != null && !productImage.isEmpty()) {
-            try {
-                Map response = CloudinaryService.uploadFile(productImage);
-                product.setImageURL(response.get("url").toString());
-                product.setImageId(response.get("public_id").toString());
-            } catch (Exception e) {
-                log.error("Failed to upload image to cloud: {}", e.getMessage());
-                messageDTOS.add(MessageDTO.builder()
-                        .message("Failed to upload product image")
-                        .type(MessageType.ERROR)
-                        .build());
-                status = ResponseStatus.PARTIAL;
-            }
-        }
-        ProductPriceEntity productPrice = ProductPriceEntity.builder()
-                .price(productDTO.getProductPrice())
-                .effectiveFrom(LocalDateTime.now())
-                .changedBy("ADMIN")
-                .changeReason("Product Created")
-                .product(product)
-                .build();
-        priceRepository.save(productPrice);
         productsRepository.save(product);
-        log.debug("saved new product");
+
+        // Save successful image uploads
+        List<ProductImageEntity> imagesToSave = MapperUtil.toProductImageEntities(uploadResponses, product);
+        if (!imagesToSave.isEmpty()) {
+            productImageRepository.saveAll(imagesToSave);
+        }
+
+        // Save price
+        ProductPriceEntity productPrice = MapperUtil.toProductPriceEntity(productDTO, product);
+        priceRepository.save(productPrice);
+
+        log.debug("saved new product with {} images", imagesToSave.size());
         auditEventBuilder.publishAddProductAuditEvent(product);
-        return MapperUtil.toProductApiResponse(product, messageDTOS, status, productPrice);
+
+        return MapperUtil.toProductApiResponse(product, messageDTOS, status, productPrice, imagesToSave);
     }
 
-    private void validateAddProductRequestDTO(ProductDTO productDTO, @Nullable MultipartFile productImage) {
+    private void validateAddProductRequestDTO(ProductDTO productDTO, @Nullable MultipartFile[] productImages) {
         if (productDTO == null) {
             throw new IllegalArgumentException("Product data cannot be null");
         }
@@ -130,11 +117,12 @@ public class ProductsServiceImpl implements ProductsService {
         if (productDTO.getProductDescription() == null || productDTO.getProductDescription().trim().isEmpty()) {
             throw new IllegalArgumentException("Product description cannot be null or empty");
         }
-        if (productImage != null && productImage.isEmpty()) {
+        if (productImages == null) {
             throw new IllegalArgumentException("Uploaded file is empty");
         }
-        if (productImage != null && !allowedTypes.contains(productImage.getContentType())) {
-            throw new IllegalArgumentException("Invalid file type uploaded");
+        List<MultipartFile> invalidImages = Arrays.stream(productImages).filter(image -> !allowedTypes.contains(image.getContentType())).toList();
+        if (!invalidImages.isEmpty()) {
+            throw new IllegalArgumentException("Invalid file type uploaded for file(s) {}" + invalidImages.stream().map(MultipartFile::getOriginalFilename).collect(Collectors.joining(", ")));
         }
     }
 
@@ -175,7 +163,8 @@ public class ProductsServiceImpl implements ProductsService {
     public ProductDTO getProductsById(int productId) {
         ProductEntity product = productsRepository.findByProductId(productId).orElseThrow(() -> new IllegalArgumentException("Product not found"));
         BigDecimal price = priceRepository.getLatestPriceForProduct(productId).map(ProductPriceEntity::getPrice).orElse(BigDecimal.ZERO);
-        return MapperUtil.toProductDTO(product, Map.of(productId, price));
+        List<ProductImageEntity> productImageEntities = productImageRepository.findByProductProductIdAndImageType(productId, ImageType.PRODUCT);
+        return MapperUtil.toProductDTO(product, Map.of(productId, price), productImageEntities);
     }
 
     private boolean hasPriceChanged(int productId, BigDecimal newPrice) {
@@ -240,6 +229,27 @@ public class ProductsServiceImpl implements ProductsService {
                 Sort.by(requestDTO.getDirection(), requestDTO.getSortBy()));
         Page<ProductReviewEntity> reviewEntityPage = reviewRepository.findByProductId(requestDTO.getProductId(), pageable);
         return reviewEntityPage.map(MapperUtil::toProductReviewDTO);
+    }
+
+    private ResponseStatus processImageUpload(List<CloudinaryUploadResponseDTO> uploadResponses, MultipartFile[] productImages, List<MessageDTO> messageDTOS) {
+        ResponseStatus status = ResponseStatus.SUCCESS;
+        if (productImages != null && productImages.length > 0) {
+            uploadResponses.addAll(CloudinaryService.uploadFilesInParallel(productImages));
+
+            // Track failures
+            List<CloudinaryUploadResponseDTO> failedUploads = uploadResponses.stream()
+                    .filter(r -> !r.isSuccess())
+                    .toList();
+
+            if (!failedUploads.isEmpty()) {
+                status = ResponseStatus.PARTIAL;
+                failedUploads.forEach(failed -> messageDTOS.add(MessageDTO.builder()
+                        .message("Failed to upload: " + failed.getOriginalFileName() + " - " + failed.getErrorMessage())
+                        .type(MessageType.ERROR)
+                        .build()));
+            }
+        }
+        return status;
     }
 
 }

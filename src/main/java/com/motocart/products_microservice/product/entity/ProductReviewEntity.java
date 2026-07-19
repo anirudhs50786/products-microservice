@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "product_reviews",
@@ -46,6 +47,9 @@ public class ProductReviewEntity {
 
     @Column(name = "reviewed_at", nullable = false)
     private LocalDateTime reviewedAt;
+
+    @OneToMany(mappedBy = "productReview", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ProductImageEntity> images;
 
     @Column(name = "is_verified")
     private boolean isVerified;

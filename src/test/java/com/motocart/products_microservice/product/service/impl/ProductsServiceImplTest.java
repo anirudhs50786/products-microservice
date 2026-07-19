@@ -5,7 +5,7 @@ import com.motocart.library.common.dto.ProductReviewDTO;
 import com.motocart.library.common.dto.response.APIResponse;
 import com.motocart.library.common.types.Permission;
 import com.motocart.library.common.types.ResponseStatus;
-import com.motocart.library.security.authentication.EntitlementService;
+import com.motocart.library.security.authorization.EntitlementService;
 import com.motocart.products_microservice.audit.AuditEventBuilder;
 import com.motocart.products_microservice.cloudinary.service.CloudinaryService;
 import com.motocart.products_microservice.data.TestDataGenerator;
@@ -82,9 +82,10 @@ class ProductsServiceImplTest {
         doNothing().when(entitlementService).canAccess(Permission.PRODUCTS_CREATE);
         when(priceRepository.save(any())).thenReturn(priceEntity);
         doNothing().when(auditEventBuilder).publishAddProductAuditEvent(any());
+        MockMultipartFile[] images = new MockMultipartFile[]{image};
 
         // Act
-        APIResponse<ProductDTO> response = productsService.addProduct(productDTO, image);
+        APIResponse<ProductDTO> response = productsService.addProduct(productDTO, images);
 
         // Assert
         assertEquals(ResponseStatus.SUCCESS, response.getStatus());
@@ -103,9 +104,10 @@ class ProductsServiceImplTest {
         when(cloudinaryService.uploadFile(image)).thenThrow(new RuntimeException("Upload failed"));
         when(productsRepository.save(any())).thenReturn(productEntity);
         doNothing().when(entitlementService).canAccess(Permission.PRODUCTS_CREATE);
+        MockMultipartFile[] images = new MockMultipartFile[]{image};
 
         // Act
-        APIResponse<ProductDTO> response = productsService.addProduct(productDTO, image);
+        APIResponse<ProductDTO> response = productsService.addProduct(productDTO, images);
 
         // Assert
         assertEquals(ResponseStatus.PARTIAL, response.getStatus());

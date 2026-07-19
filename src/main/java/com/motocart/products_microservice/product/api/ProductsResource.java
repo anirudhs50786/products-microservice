@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface ProductsResource {
 
-    APIResponse<ProductDTO> createProduct(ProductDTO product, MultipartFile productImage) throws Exception;
+    APIResponse<ProductDTO> createProduct(ProductDTO product, MultipartFile[] productImages) throws Exception;
 
     ResponseEntity<String> updateProduct(ProductDTO product);
 

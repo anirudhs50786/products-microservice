@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Table(name = "products")
 @Data
@@ -47,6 +49,9 @@ public class ProductEntity {
 
     @Column(name = "average_review_score")
     private double averageReviewScore;
+
+    @OneToMany(mappedBy = "productReview", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ProductImageEntity> images;
 
     @Column(name = "is_archived")
     private boolean isArchived;

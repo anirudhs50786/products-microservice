@@ -31,9 +31,9 @@ public class ProductsResourceImpl implements ProductsResource {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
     @Override
-    public APIResponse<ProductDTO> createProduct(@RequestPart ProductDTO product, @RequestPart(required = false) MultipartFile productImage) {
+    public APIResponse<ProductDTO> createProduct(@RequestPart ProductDTO product, @RequestPart(required = false) MultipartFile[] productImages) {
         try {
-            return productsService.addProduct(product, productImage);
+            return productsService.addProduct(product, productImages);
         } catch (IllegalArgumentException ilx) {
             log.warn("Request error:", ilx);
             throw new GlobalException("Required fields are missing.", ilx);

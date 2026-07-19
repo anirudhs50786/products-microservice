@@ -1,18 +1,19 @@
 package com.motocart.products_microservice.util;
 
-import com.motocart.library.common.dto.CategoriesDTO;
-import com.motocart.library.common.dto.MessageDTO;
-import com.motocart.library.common.dto.ProductDTO;
-import com.motocart.library.common.dto.ProductReviewDTO;
+import com.motocart.library.common.dto.*;
 import com.motocart.library.common.dto.response.APIResponse;
+import com.motocart.library.common.types.ImageType;
 import com.motocart.library.common.types.ResponseStatus;
 import com.motocart.products_microservice.category.entity.CategoriesEntity;
+import com.motocart.products_microservice.cloudinary.dto.CloudinaryUploadResponseDTO;
 import com.motocart.products_microservice.product.entity.ProductEntity;
+import com.motocart.products_microservice.product.entity.ProductImageEntity;
 import com.motocart.products_microservice.product.entity.ProductPriceEntity;
 import com.motocart.products_microservice.product.entity.ProductReviewEntity;
 import com.motocart.products_microservice.product.service.ProductsService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -23,10 +24,10 @@ public final class MapperUtil {
     }
 
     public static List<ProductDTO> toProductDTOList(List<ProductEntity> productsEntities, Map<Integer, BigDecimal> productPriceMap) {
-        return productsEntities.stream().map(productsEntity -> toProductDTO(productsEntity, productPriceMap)).toList();
+        return productsEntities.stream().map(productsEntity -> toProductDTO(productsEntity, productPriceMap, null)).toList();
     }
 
-    public static ProductDTO toProductDTO(ProductEntity productEntity, Map<Integer, BigDecimal> productPriceMap) {
+    public static ProductDTO toProductDTO(ProductEntity productEntity, Map<Integer, BigDecimal> productPriceMap, List<ProductImageEntity> imageEntities) {
         if (productEntity == null || productPriceMap == null) {
             return null;
         }
@@ -35,11 +36,26 @@ public final class MapperUtil {
                 .productId(productEntity.getProductId())
                 .productName(productEntity.getProductName())
                 .productDescription(productEntity.getProductDescription())
-                .imageUrl(productEntity.getImageURL())
+                .images(toProductImageDTOs(imageEntities))
                 .productPrice(productPrice)
-                .imageId(productEntity.getImageId())
                 .firmName(productEntity.getFirmName())
                 .build();
+    }
+
+    public static List<ProductImageDTO> toProductImageDTOs(List<ProductImageEntity> productImageEntities) {
+        if (productImageEntities == null || productImageEntities.isEmpty()) {
+            return null;
+        }
+        return productImageEntities.stream().map(MapperUtil::toProductImageDTO).toList();
+    }
+
+    private static ProductImageDTO toProductImageDTO(ProductImageEntity productImageEntity) {
+        ProductImageDTO productImageDTO = new ProductImageDTO();
+        productImageDTO.setImageId(productImageEntity.getImageId());
+        productImageDTO.setImageUrl(productImageEntity.getImageUrl());
+        //productImageDTO.setImageType(productImageEntity.getImageType());
+        //productImageDTO.setProductId(productImageEntity.getProduct().getProductId());
+        return productImageDTO;
     }
 
     public static ProductEntity toProductEntity(ProductDTO productDTO) {
@@ -55,10 +71,11 @@ public final class MapperUtil {
     public static APIResponse<ProductDTO> toProductApiResponse(ProductEntity productEntity,
                                                                List<MessageDTO> messageDTOS,
                                                                ResponseStatus responseStatus,
-                                                               ProductPriceEntity productPrice) {
+                                                               ProductPriceEntity productPrice,
+                                                               List<ProductImageEntity> imageEntities) {
         Map<Integer, BigDecimal> productPriceMap = Map.of(productEntity.getProductId(), productPrice.getPrice());
         return APIResponse.<ProductDTO>builder()
-                .data(toProductDTO(productEntity, productPriceMap))
+                .data(toProductDTO(productEntity, productPriceMap, imageEntities))
                 .messages(messageDTOS)
                 .status((responseStatus))
                 .build();
@@ -102,5 +119,28 @@ public final class MapperUtil {
 
     public static List<CategoriesDTO> toCategoriesDTOList(List<CategoriesEntity> categories) {
         return categories.stream().map(MapperUtil::toCategoriesDTO).toList();
+    }
+
+    public static List<ProductImageEntity> toProductImageEntities(List<CloudinaryUploadResponseDTO> uploadResponses, ProductEntity product) {
+        return uploadResponses.stream()
+                .filter(CloudinaryUploadResponseDTO::isSuccess)
+                .map(response -> ProductImageEntity.builder()
+                        .imageUrl(response.getImageUrl())
+                        .imageId(response.getImageId())
+                        .imageType(ImageType.PRODUCT)
+                        .product(product)
+                        .createdAt(LocalDateTime.now())
+                        .build())
+                .toList();
+    }
+
+    public static ProductPriceEntity toProductPriceEntity(ProductDTO productDTO, ProductEntity product) {
+        return ProductPriceEntity.builder()
+                .price(productDTO.getProductPrice())
+                .effectiveFrom(LocalDateTime.now())
+                .changedBy("ADMIN")
+                .changeReason("Product Created")
+                .product(product)
+                .build();
     }
 }

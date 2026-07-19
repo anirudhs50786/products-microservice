@@ -13,7 +13,7 @@ public interface ProductsService {
 
     String MEDIA_LINK_SEPARATOR = ",";
 
-    APIResponse<ProductDTO> addProduct(ProductDTO productDTO, MultipartFile productImage);
+    APIResponse<ProductDTO> addProduct(ProductDTO productDTO, MultipartFile[] productImages);
 
     void updateProduct(ProductDTO productDTO);
 
